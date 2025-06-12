@@ -173,3 +173,31 @@ const data = await Promise.all([
 ## 動的レンダリング
 データの取得・レンダリングを **毎リクエスト時** にサーバ上で行うこと
 リアルタイムなデータを反映するのに向いているが、SEO 等に弱い
+
+動的レンダリングでページをレンダリングした際、ページが最初に表示されるのは **最後のデータフェッチが終了した後** になる
+
+# ストリーミング
+データを分割して送信する技術
+動的レンダリングの表示が遅れる問題を解決するのに使える
+
+Next.js ではルートフォルダ内に設置された `loading.tsx` がローディング中に用いられる
+
+```tsx
+// app/hoge/loading.tsx
+
+// /hoge にアクセスした直後、データフェッチが終了するまで表示される
+export default function Loading() {
+  return <div>Loading...</div>;
+}
+```
+
+## Suspense
+React から提供される、部分的ストリーミングのためのコンポーネント
+`fallback` パラメータにフォールバックコンポーネントを渡すことで、ローディング表示が実装できる
+
+```tsx
+<Suspense fallback={<RevenueChartSkeleton />}>
+  <RevenueChart />
+</Suspense>
+```
+
