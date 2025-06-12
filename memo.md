@@ -139,3 +139,29 @@ https://nextjs.org/docs/app/getting-started/project-structure#colocation
 
 レイアウトは **ナビゲーション時に再レンダリングされない**
 つまり、ページ遷移前後で同一のパーツをサーバから取り寄せることがなく、不要な処理・通信が発生しない
+
+# Vercel と DB
+Vercel には DB 連携機能ができたっぽい（ダッシュボードから supabase などの外部リソースを捜査できた）
+https://supabase.com/partners/integrations/vercel
+
+## リクエストウォーターフォール
+リクエストを前から順に処理していく一連の流れ
+同期的に処理していくため、重い処理が挟まると後続の処理も遅れる
+
+```ts
+const hoge = await fetchHoge();
+const huga = await fetchHuga();  // fetchHoge の終了を待つ
+const piyo = await fetchPiyo();  // fetchHuga の終了を待つ
+```
+
+## 並列データフェッチ
+JavaScript では `Promice.all` で実現できる
+
+```ts
+const data = await Promise.all([
+  fetchHoge,
+  fetchHuga,
+  fetchPiyo
+]);
+```
+
