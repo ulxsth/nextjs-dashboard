@@ -202,4 +202,38 @@ React から提供される、部分的ストリーミングのためのコン�
 ```
 
 # クエリパラメータ
-Next.js では `useSearchParams` を用いる
+Next.js では、CSR/SSR 別にクエリパラメータへアクセスする方法が用意されている
+
+## CSR
+`useSearchParams` を使用する
+
+```ts
+const searchParams = useSearchParams();
+```
+
+## SSR
+ページコンポーネントの props は `searchParams` という値を受け取れるので、これを使用する
+
+```tsx
+export default async function Page(props: {
+  searchParams?: Promise<{
+    query?: string;
+    page?: string;
+  }>;
+}) {}
+```
+
+# デバウンス
+アクティブに更新するようなアプリケーションに検索クエリを埋め込む場合（例：入力ごとに検索結果を更新する検索バー）、クエリが高頻度で送信されることを避ける必要がある
+この手法を **デバウンス** とよぶ
+
+1. trigger: デバウンスが発生すると、タイマーが開始される
+2. wait:    タイマー期限前にイベントが発生した場合リセット
+3. execute: タイマーが終了すると、デバウンスされた関数が実行
+
+たとえば検索バーの例では、感覚を300ミリ秒に設定した場合、次の入力が来ないか300ミリ秒待ってから検索を実行する　といった具合になる
+
+
+Next.js では `use-debounce` という外部ライブラリを推奨している
+https://www.npmjs.com/package/use-debounce
+
