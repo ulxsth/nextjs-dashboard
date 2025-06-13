@@ -287,3 +287,26 @@ await fetch("http://localhost:3000/users/hogehoge", {
 revalidateTag("user");
 ```
 
+# エラーハンドリング
+Next.js では、ルートごとに `error.tsx` を設置することでフォールバックUIを定義できる
+
+```tsx
+export default function Error({
+  error,   // Error インスタンス
+  reset,   // エラーをリセットする関数
+}: {}
+```
+
+## notFound() と not-found.tsx
+404 エラーを独自に処理する場合、`notFound()` と `not-found.tsx` が役に立つ
+`not-found.tsx` は `error.tsx` と同様、ルートごとに設置できる
+
+```tsx
+import { notFound } from 'next/navigation';
+
+// ...
+
+if (!invoice) {
+  notFound();   // -> not-found.tsx を探して表示する
+}
+```
