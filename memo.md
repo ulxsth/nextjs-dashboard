@@ -241,8 +241,6 @@ https://www.npmjs.com/package/use-debounce
 React に提供される、 API を用意せずともサーバ上で直接非同期コードを実行できる手法
 これにより、**Progressive Enhancement（斬新的拡張）**：html→css→js の順に読み込み、読み込まれたものから適用するフローにおいて、js が読み込まれていない状況（例：ネット回線が遅い）でもアプリの一部が正常に動作する、などのメリットがある
 
-また Next.js では Server Component とキャッシュ機能が深く統合されており、単に
-
 ```tsx
 // Server Component
 export default function Page() {
@@ -257,3 +255,35 @@ export default function Page() {
   return <form action={create}>...</form>;
 }
 ```
+
+## Next.js のキャッシュと Server Components
+Next.js では動作高速化のためにキャッシュを使用するが、form action による画面遷移が発生した場合、更新したカラム情報がキャッシュに反映されず、実際のデータと異なるデータ状態を表示してしまうことがある
+一度キャッシュされてしまうと、キャッシュを消去する操作を行うまで同じ画面が表示され続けるため、知らないままでは非常に厄介な機能となる
+
+これを防ぐため、データ更新後は必ず `revalidatePath` `revalidateTag` などを使用して再検証を行う
+
+## revalidatePath
+特定のルートページにおけるキャッシュを再検証する
+
+```ts
+// ユーザー一覧ページのキャッシュを再検証
+revalidatePath("/users");
+```
+
+## revalidateTag
+Next.js の fetch には、オプションとして **タグ** というものが付与できる
+これを付与しておくことで、`revalidateTag` による一括再検証が可能になる
+
+```ts
+// いくつかの fetch に対して "user" タグを付与する
+await fetch("http://localhost:3000/users", {
+  next: { tags: ["user"] },
+});
+await fetch("http://localhost:3000/users/hogehoge", {
+  next: { tags: ["user"] },
+});
+
+// "user" タグの fetch 結果キャッシュに対し、再検証を行う
+revalidateTag("user");
+```
+
