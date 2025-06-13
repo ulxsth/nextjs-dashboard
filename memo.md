@@ -237,3 +237,23 @@ export default async function Page(props: {
 Next.js では `use-debounce` という外部ライブラリを推奨している
 https://www.npmjs.com/package/use-debounce
 
+# React Server Action
+React に提供される、 API を用意せずともサーバ上で直接非同期コードを実行できる手法
+これにより、**Progressive Enhancement（斬新的拡張）**：html→css→js の順に読み込み、読み込まれたものから適用するフローにおいて、js が読み込まれていない状況（例：ネット回線が遅い）でもアプリの一部が正常に動作する、などのメリットがある
+
+また Next.js では Server Component とキャッシュ機能が深く統合されており、単に
+
+```tsx
+// Server Component
+export default function Page() {
+  // Action
+  async function create(formData: FormData) {
+    'use server';
+ 
+    // Logic to mutate data...
+  }
+ 
+  // Invoke the action using the "action" attribute
+  return <form action={create}>...</form>;
+}
+```
