@@ -310,3 +310,87 @@ if (!invoice) {
   notFound();   // -> not-found.tsx を探して表示する
 }
 ```
+
+
+# アクセシビリティ
+eslint の `eslint-plugin-jsx-a11y` は、コードベース内のアクセシビリティに関する問題（例：`alt` のない画像、`aria-*`, `role` の誤用）を早期に発見することができる
+Next.js の `Image` などにも適用される
+
+
+# フォームの検証
+たとえば空のデータをフォームとして送信したとき、なんの対応もしていないとエラーページが表示される
+これを防ぐため、フォームの検証を追加することができる
+
+## クライアント側
+`required` を使用する
+
+```tsx
+<input
+  id="amount"
+  name="amount"
+  type="number"
+  required   // add
+/>
+```
+
+## サーバ側
+クライアント側での対策は「行儀のよい」ユーザーの誤送信を防ぐのみで、API へ直に送信するようなリクエストには対応できない
+これを防ぐため、サーバ側検証を行う
+
+React/Next では `useActionState` を使用する
+
+```ts
+// action.ts
+
+
+// フォーム状態を示す型を定義（ここでは Zod が返すエラー構造をトレースした型）
+type State = {
+  errors?: {
+    customerId?: string[];
+    amount?: string[];
+    status?: string[];
+  };
+  message?: string | null;
+}
+
+// [in action function]
+// Zod による parse に safeParse を用い、エラーを帰り値として返すようにする
+const validatedFields = CreateInvoice.safeParse({
+  customerId: formData.get('customerId'),
+  amount: formData.get('amount'),
+  status: formData.get('status'),
+})
+
+if (!validatedFields.success) {
+  // 帰り値の型は State と同一
+  return {
+    errors: validatedFields.error.flatten().fieldErrors,
+    message: "Missing Fields. Failed to Create Invoice."
+  }
+}
+```
+
+```ts
+// page.tsx
+
+
+// 初期状態を定義
+const initialState: State = { message: null, errors: {} };
+
+// useActionState に任意の関数と初期状態を渡す
+const [state, formAction] = useActionState(createInvoice, initialState);
+
+// これを state に渡す
+<form action={formAction} aria-describedby="form-error">
+
+// あとは任意の場所で任意のエラーを表示すればoK
+<div id="customer-error" aria-live="polite" aria-atomic="true">
+  {state.errors?.customerId &&
+    state.errors.customerId.map((error: string) => (
+      <p className="mt-2 text-sm text-red-500" key={error}>
+        {error}
+      </p>
+    ))}
+</div>
+```
+
